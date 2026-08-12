@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "hellowork-reader": {
+      "command": "node",
+      "args": [
+        "/Users/shigeyamakensei/claude-company/hellowork-reader/mcp-server.js"
+      ],
+      "env": {}
+    }
+  }
+}
