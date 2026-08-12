@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import JobCard from './JobCard';
-import { Search, Filter, ArrowUpDown, MapPin, Briefcase, DollarSign, RotateCcw, Globe, Loader2, Sparkles } from 'lucide-react';
-import { calculateEstimatedSalary, extractPrefecture, extractCategory, parseHelloworkText } from '../utils/helloworkParser';
+import { Search, ArrowUpDown, MapPin, Briefcase, DollarSign, RotateCcw, Globe, Loader2, Sparkles } from 'lucide-react';
+import { calculateEstimatedSalary, extractPrefecture, extractCategory } from '../utils/helloworkParser';
 
 export default function JobList({ 
   jobs, 
@@ -22,7 +22,36 @@ export default function JobList({
   const [filterHoliday, setFilterHoliday] = useState('all');
   const [filterOvertime, setFilterOvertime] = useState('all');
   const [showFavoriteOnly, setShowFavoriteOnly] = useState(false);
-  const [isAutoSearching, setIsAutoSearching] = useState(false);
+  const [isLiveScraping, setIsLiveScraping] = useState(false);
+
+  // 検索ワードまたは都道府県入力時に「毎度ハローワークから自動スクレイピング」
+  useEffect(() => {
+    if (!searchTerm.trim() && selectedPrefecture === 'all') return;
+
+    const timer = setTimeout(async () => {
+      setIsLiveScraping(true);
+      try {
+        const query = `${selectedPrefecture !== 'all' ? selectedPrefecture + ' ' : ''}${searchTerm}`.trim();
+        const response = await fetch('/api/scrape-job', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword: query, prefecture: selectedPrefecture })
+        });
+        const data = await response.json();
+        if (data.success && data.jobs && data.jobs.length > 0) {
+          data.jobs.forEach(newJob => {
+            if (onAddJob) onAddJob(newJob);
+          });
+        }
+      } catch (err) {
+        console.error('Auto live scraping error:', err);
+      } finally {
+        setIsLiveScraping(false);
+      }
+    }, 600); // 0.6秒デバウンス
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, selectedPrefecture]);
 
   // フィルターリセット
   const handleResetFilters = () => {
@@ -35,38 +64,6 @@ export default function JobList({
     setFilterHoliday('all');
     setFilterOvertime('all');
     setShowFavoriteOnly(false);
-  };
-
-  // 検索ヒットゼロ時のリアルタイム自動取得
-  const handleRealtimeFetchForSearch = async () => {
-    if (!searchTerm.trim()) return;
-    setIsAutoSearching(true);
-
-    try {
-      // ユーザーの入力キーワードから自動的に地域と職種を推定
-      const isKagoshima = searchTerm.includes('鹿児島');
-      const isDC = searchTerm.includes('データセンター') || searchTerm.includes('インフラ') || searchTerm.includes('サーバー');
-
-      const simulatedJobText = `求人番号: 46010-${Math.floor(10000000 + Math.random() * 90000000)}
-事業所名: ${isKagoshima ? '鹿児島' : ''}${isDC ? 'ITソリューションズ' : '地域開発'} 株式会社
-職種: ${searchTerm} 担当スタッフ
-就業場所: ${isKagoshima ? '鹿児島県鹿児島市' : '東京都千代田区'}
-基本給: 245,000円
-手当: 20,000円
-年間休日数: 123日
-時間外労働時間: 月平均10時間
-賞与: 前年実績 年2回・3.5ヶ月分
-特記事項: ★${searchTerm}の公募求人。未経験応募可。完全週休2日制。受動喫煙対策あり。`;
-
-      const newJob = parseHelloworkText(simulatedJobText);
-      if (onAddJob) {
-        onAddJob(newJob);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAutoSearching(false);
-    }
   };
 
   // 都道府県リストの動的生成
@@ -157,6 +154,27 @@ export default function JobList({
 
   return (
     <div>
+      {/* 毎度自動スクレイピング状態インジケーター */}
+      {isLiveScraping && (
+        <div style={{
+          background: 'rgba(59, 130, 246, 0.15)',
+          border: '1px solid var(--accent-blue)',
+          color: '#60a5fa',
+          padding: '0.6rem 1rem',
+          borderRadius: 'var(--radius-md)',
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          marginBottom: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <Loader2 size={16} className="animate-spin" />
+          <span>⚡️ ハローワーク公式Webから最新求人を自動スクレイピング中...</span>
+        </div>
+      )}
+
       {/* Expanded Control & Filter Bar */}
       <div className="control-bar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem' }}>
         
@@ -310,20 +328,8 @@ export default function JobList({
         <div className="empty-state">
           <h3>条件に該当する求人が見つかりませんでした</h3>
           <p style={{ marginTop: '0.5rem', marginBottom: '1.25rem' }}>
-            「条件クリア」を押すか、ハローワークから「{searchTerm || '該当地域'}」の求人をリアルタイム取得してみましょう。
+            「条件クリア」を押すか、ハローワークから求人を自動取得中ですので少々お待ちください。
           </p>
-
-          {searchTerm && (
-            <button 
-              className="btn-primary" 
-              onClick={handleRealtimeFetchForSearch}
-              disabled={isAutoSearching}
-              style={{ display: 'inline-flex', gap: '0.5rem', margin: '0 auto' }}
-            >
-              {isAutoSearching ? <Loader2 size={16} className="animate-spin" /> : <Globe size={16} />}
-              ⚡️ ハローワークから「{searchTerm}」の求人をリアルタイム取得
-            </button>
-          )}
         </div>
       )}
     </div>
