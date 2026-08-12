@@ -1,8 +1,44 @@
 /**
- * リアルなハローワーク求人を再現したサンプルデータ
+ * リアルなハローワーク求人を再現したサンプルデータ (鹿児島・地方求人を含む)
  */
 
 export const SAMPLE_JOBS = [
+  {
+    id: 'sample-kagoshima-1',
+    jobNo: '46010-12984011',
+    title: '鹿児島データセンター サーバー運用監視・保守エンジニア',
+    company: '南日本ITソリューションズ 株式会社',
+    employmentType: '正社員',
+    location: '鹿児島県鹿児島市（鹿児島中央駅 徒歩10分）',
+    prefecture: '鹿児島県',
+    category: 'IT・Web・エンジニア',
+    baseSalary: 235000,
+    regularAllowance: 25000, // 職務手当・地域手当
+    fixedOvertimePay: 0,
+    fixedOvertimeHours: 0,
+    bonusMonths: 3.5,
+    annualHolidays: 123,
+    weeklyDaysOff: '完全週休二日制（シフト制・週休2日確約）',
+    workingHours: '09:00〜18:00 (夜勤シフト応相談・手当支給)',
+    monthlyOvertime: 8,
+    probationMonths: 3,
+    probationNotes: '試用期間中（3ヶ月）同条件',
+    transfer: 'なし',
+    insurance: '雇用保険，労災保険，健康保険，厚生年金，退職金制度あり',
+    education: '不問',
+    experienceNeeded: 'ITの基礎知識または職業訓練修了者（実務未経験可）',
+    specialNotes: '★鹿児島県内の最新データセンター勤務。シフト夜勤手当別途支給。資格取得支援制度あり（CCNA, LPICなど全額補助）。車通勤可（駐車場あり）。',
+    parkingFee: '無料駐車場あり',
+    parsedAt: '2026/08/12',
+    rawText: `求人番号: 46010-12984011
+事業所名: 南日本ITソリューションズ 株式会社
+職種: 鹿児島データセンター サーバー運用監視・保守エンジニア
+就業場所: 鹿児島県鹿児島市
+基本給: 235,000円
+手当: 25,000円
+年間休日数: 123日
+賞与: 計3.5ヶ月分`
+  },
   {
     id: 'sample-1',
     jobNo: '13010-45892141',

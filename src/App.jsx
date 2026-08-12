@@ -11,13 +11,12 @@ const STORAGE_KEY_JOBS = 'hellowork_reader_jobs_v1';
 const STORAGE_KEY_FAVS = 'hellowork_reader_favs_v1';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('list'); // 'list' | 'compare' | 'analytics' | 'import'
+  const [activeTab, setActiveTab] = useState('list');
   const [jobs, setJobs] = useState([]);
   const [comparedIds, setComparedIds] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
 
-  // 初期読み込み (LocalStorage or サンプル)
   useEffect(() => {
     try {
       const savedJobs = localStorage.getItem(STORAGE_KEY_JOBS);
@@ -38,7 +37,6 @@ export default function App() {
     }
   }, []);
 
-  // 求人更新時の自動保存
   const updateJobsState = (newJobs) => {
     setJobs(newJobs);
     try {
@@ -48,13 +46,11 @@ export default function App() {
     }
   };
 
-  // 求人の新規追加
   const handleAddJob = (newJob) => {
     const updated = [newJob, ...jobs];
     updateJobsState(updated);
   };
 
-  // 求人の削除
   const handleDeleteJob = (id) => {
     const updated = jobs.filter(j => j.id !== id);
     updateJobsState(updated);
@@ -62,7 +58,6 @@ export default function App() {
     setFavoriteIds(favoriteIds.filter(fid => fid !== id));
   };
 
-  // サンプル求人の再セット
   const handleResetSamples = () => {
     if (window.confirm('初期サンプル求人を再読み込みしますか？')) {
       updateJobsState(SAMPLE_JOBS);
@@ -70,7 +65,6 @@ export default function App() {
     }
   };
 
-  // 比較のON/OFF
   const handleToggleCompare = (id) => {
     if (comparedIds.includes(id)) {
       setComparedIds(comparedIds.filter(cid => cid !== id));
@@ -83,7 +77,6 @@ export default function App() {
     }
   };
 
-  // お気に入りのON/OFF
   const handleToggleFavorite = (id) => {
     let updated;
     if (favoriteIds.includes(id)) {
@@ -97,7 +90,6 @@ export default function App() {
     } catch (e) {}
   };
 
-  // 個人メモの更新
   const handleUpdateMemo = (id, memoText) => {
     const updated = jobs.map(j => {
       if (j.id === id) {
@@ -111,7 +103,6 @@ export default function App() {
     }
   };
 
-  // データエクスポート
   const handleExportData = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jobs, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -142,6 +133,7 @@ export default function App() {
             favoriteIds={favoriteIds}
             onToggleFavorite={handleToggleFavorite}
             onDeleteJob={handleDeleteJob}
+            onAddJob={handleAddJob}
           />
         )}
 
@@ -169,7 +161,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Detail Modal */}
       {selectedJob && (
         <JobDetailModal 
           job={selectedJob}
